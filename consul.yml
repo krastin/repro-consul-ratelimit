@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  consul-server:
+    image: consul:1.7.2
+    environment:
+      CONSUL_LOCAL_CONFIG: |-
+        {
+          "ui": true,
+          "datacenter": "nl-hoorn-1",
+          "server": true,
+          "client_addr": "0.0.0.0",
+          "limits": {
+              "http_max_conns_per_client": 5
+          },
+          "bind_addr": "{{ GetInterfaceIP \"eth0\" }}"
+        }
+    ports:
+      - "8501:8500"
+    entrypoint: ["docker-entrypoint.sh", "agent", "-dev"]
+
+  consul-client:
+    image: consul:1.7.2
+    environment:
+      CONSUL_LOCAL_CONFIG: |-
+        {
+          "ui": true,
+          "datacenter": "nl-hoorn-1",
+          "server": false,
+          "bind_addr": "{{ GetInterfaceIP \"eth0\" }}",
+          "client_addr": "0.0.0.0",
+          "limits": {
+              "http_max_conns_per_client": 5
+          },
+          "retry_join": ["consul-server"]
+        }
+    ports:
+      - "8502:8500"
+    entrypoint: ["docker-entrypoint.sh", "agent", "-dev"]
+
